@@ -10,9 +10,9 @@ app.listen(4000, console.log("server is running"));
 var mysql = require("mysql");
 var connection = mysql.createConnection({
   host: "localhost",
-  user: "root",
-  password: "root",
-  database: "test",
+  user: "wgkdbbswdh",
+  password: "yGNZuHk7GG",
+  database: "wgkdbbswdh",
 });
 
 app.get("/quiz_details/:quid", async (request, response) => {
