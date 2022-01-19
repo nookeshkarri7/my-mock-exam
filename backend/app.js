@@ -1,26 +1,49 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const { response, request } = require("express");
 const sql = require("mssql");
+console.log(sql.connect);
 app.use(express.json());
 app.use(cors());
 app.listen(4000, console.log("server is running"));
 
+var mysql = require("mysql");
+var connection = mysql.createConnection({
+  host: "localhost",
+  user: "root",
+  password: "root",
+  database: "test",
+});
 
-const connectDb=async () => {
-  try {
-    // make sure that any items are correctly URL encoded in the connection string
-    await sql.connect(
-      "Server=localhost,3306;Database=test;User Id=root;Password=root;Encrypt=true"
-    );
-    const result = await sql.query`select 1`;
-    console.log(result);
-  } catch (err) {
-    // ... error checks
+app.get("/quiz_details/:quid", async (request, response) => {
+  const { quid } = request.params;
+  // const quizNo = parseInt(quid);
+  console.log(quid);
+
+  await connection.query(
+    "call getquiz(" + quid + ")",
+    async function (error, results) {
+      if (error) response.send(error);
+      response.send(JSON.stringify(results));
+    }
+  );
+});
+
+app.post("/quiz-attempt/submit-quiz/:quid", async (request, response) => {
+  const { quid } = request.params;
+  const { r_qids, score_individual, username } = request.body;
+  console.log(quid);
+  function add(accumulator, a) {
+    return parseInt(accumulator) + parseInt(a);
   }
-};
-connectDb()
-app.get("/", (request, response) => {
-  response.send("moviesData");
+  await connection.query(
+    `CALL storeAnswers(${quid},'${username}','${r_qids}',${score_individual.reduce(
+      add,
+      0
+    )},'${score_individual}')`,
+    async function (error, results) {
+      if (error) response.send(error);
+      response.send(JSON.stringify(results[0]));
+    }
+  );
 });
